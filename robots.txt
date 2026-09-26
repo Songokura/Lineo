@@ -9,4 +9,4 @@ Allow: /
 Disallow: /assets/lang/
 Disallow: /*lang=kk
 
-Sitemap: https://songokura.github.io/Lineo/sitemap.xml
+Sitemap: https://lineo.kz/sitemap.xml
