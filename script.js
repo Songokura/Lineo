@@ -13,7 +13,7 @@ var HAS_IO = typeof IntersectionObserver === "function";
 var root = document.documentElement;
 
 /* ---------------- КОНВЕРСИИ GOOGLE ADS ----------------
-   Ярлыки задаёт index.html (window.LN_CONV): phone, contact, lead. Пусто - не шлём. */
+   Ярлыки задаёт index.html (window.LN_CONV): phone - tel:, contact - WhatsApp и email, lead - форма. Пусто - не шлём. */
 function conv(key){
   var id = (window.LN_CONV || {})[key];
   if (!id || typeof window.gtag !== "function") return;
@@ -24,7 +24,7 @@ document.addEventListener("click", function(e){
   if (!a) return;
   var h = a.getAttribute("href") || "";
   if (h.indexOf("tel:") === 0) conv("phone");
-  else if (h.indexOf("wa.me") > -1) conv("contact");
+  else if (h.indexOf("wa.me") > -1 || h.indexOf("mailto:") === 0) conv("contact");
 }, true);
 
 /* ---------------- КАЗАХСКИЙ СЛОВАРЬ ----------------
