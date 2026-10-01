@@ -2,7 +2,7 @@
    LINEO - скрипт страницы.
    Плиты и ящик с доводчиком (герой и плиты услуг) · вкладки шкафов ·
    перевод RU/KZ (словарь kk грузится по кнопке) · меню · бегущие ленты ·
-   WhatsApp с готовым текстом · форма в WhatsApp. Библиотек нет.
+   WhatsApp с готовым текстом · форма в Telegram-бот LeadBot. Библиотек нет.
    ============================================================ */
 (function(){
 "use strict";
@@ -358,23 +358,43 @@ if (HAS_IO) {
   document.querySelectorAll(".rv").forEach(function(el){ el.classList.add("in"); });
 }
 
-/* ---------------- ФОРМА → WhatsApp ---------------- */
-var FORM_RU = {hello:"Здравствуйте! Заявка на бесплатный замер с сайта LINEO.", name:"Имя", what:"Что нужно", phone:"Телефон", none:"не выбрано"};
+/* ---------------- ФОРМА → Telegram (LeadBot) ----------------
+   Без перехода в WhatsApp: заявка уходит в бота, «принято» показываем только после ответа сервера.
+   Не дошла - показываем телефон и WhatsApp как запасной канал. */
+var LB = "https://lead-bot.sultan-askarov-kz.workers.dev/e";
+function sendLead(fields){
+  if (window.LeadBot && window.LeadBot.submit) return window.LeadBot.submit(fields, {el: form, label: "Отправить заявку"});
+  /* трекер не загрузился (блокировщик) - шлём сами, без источника визита */
+  if (!window.fetch) return Promise.resolve({ok: false});
+  var body = JSON.stringify({site: "lineo", type: "form", direct: 1, fields: fields, label: "Отправить заявку", section: "zamer",
+    page: location.pathname + location.hash, lang: root.lang, ts: new Date().toISOString()});
+  return fetch(LB, {method: "POST", body: body, headers: {"content-type": "text/plain"}})
+    .then(function(r){ return {ok: r.ok}; }, function(){ return {ok: false}; });
+}
 var form = document.getElementById("form");
 if (form) form.addEventListener("submit", function(e){
   e.preventDefault();
-  var ok = document.getElementById("fmok"), err = document.getElementById("fmerr");
+  var ok = document.getElementById("fmok"), err = document.getElementById("fmerr"), fail = document.getElementById("fmfail");
+  var btn = form.querySelector('[type="submit"]');
+  if (btn.disabled) return;
   if (form.company && form.company.value) return;          /* honeypot */
   var phone = form.phone.value.trim();
-  if (phone.replace(/\D/g, "").length < 10) { err.hidden = false; ok.hidden = true; form.phone.focus(); return; }
-  err.hidden = true;
-  var F = (curLang() === "kk" && KK && KK.form) ? KK.form : FORM_RU;
-  var sel = form.what, what = sel.value ? sel.options[sel.selectedIndex].textContent.trim() : F.none;
-  var name = form.name.value.trim();
-  var t = F.hello + "\n" + (name ? F.name + ": " + name + "\n" : "") + F.what + ": " + what + "\n" + F.phone + ": " + phone;
-  ok.hidden = false;
-  conv("lead");
-  window.open("https://wa.me/" + WA + "?text=" + encodeURIComponent(t), "_blank", "noopener");
+  if (phone.replace(/\D/g, "").length < 10) { err.hidden = false; ok.hidden = true; fail.hidden = true; form.phone.focus(); return; }
+  err.hidden = true; fail.hidden = true;
+  /* поля - на русском, как их увидит менеджер в Telegram, независимо от языка сайта */
+  var sel = form.what;
+  var fields = {name: form.name.value.trim(), phone: phone, "Что нужно": sel.value || "", message: form.message.value.trim()};
+  btn.disabled = true;
+  sendLead(fields).then(function(r){
+    btn.disabled = false;
+    if (r && r.ok) {
+      ok.hidden = false;
+      conv("lead");
+      form.reset();
+    } else {
+      fail.hidden = false;
+    }
+  });
 });
 
 /* ---------------- СТАРТ ---------------- */
