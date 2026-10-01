@@ -28,7 +28,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@600;700;800&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/hero.webp" media="(min-width:761px)">
 <link rel="preload" as="image" href="assets/hero-m.webp" media="(max-width:760px)">
-<link rel="stylesheet" href="styles.css?v=20261001-3">
+<link rel="stylesheet" href="styles.css?v=20261001-4">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"LocalBusiness","additionalType":"https://schema.org/FurnitureStore","name":"LINEO - мебельная компания","description":"Корпусная мебель на заказ в Астане: кухни, шкафы, гардеробные, прихожие, мебель для бизнеса. Собственное производство, полный цикл от замера до монтажа.","url":"https://lineo.kz/","telephone":"+77001112480","email":"leo.lineo@mail.ru","image":"https://lineo.kz/assets/og-image.jpg","address":{"@type":"PostalAddress","streetAddress":"ул. Ыкылас Дукенулы, 25/1","addressLocality":"Астана","addressCountry":"KZ"},"geo":{"@type":"GeoCoordinates","latitude":51.181032,"longitude":71.430355},"openingHoursSpecification":{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],"opens":"09:00","closes":"19:30"},"sameAs":["https://www.instagram.com/lineo.mebel.kz","https://2gis.kz/astana/geo/70000001099074313/71.430355,51.181032"],"aggregateRating":{"@type":"AggregateRating","ratingValue":"5","reviewCount":"29","bestRating":"5"},"areaServed":{"@type":"City","name":"Астана"},"knowsAbout":["Кухни на заказ","Шкафы-купе","Гардеробные","Прихожие","Мебель для бизнеса","Проектирование мебели"]}
 </script>
@@ -390,9 +390,9 @@
         <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
         <button class="btn btn-wa btn-big" type="submit"><span data-i="fm.btn">Отправить заявку</span></button>
         <p class="fm-note" data-i="fm.note">Заявка придёт нам напрямую - перезвоним в рабочее время, 09:00-19:30</p>
-        <p class="fm-ok" id="fmok" hidden data-i="fm.ok">Спасибо! Заявка принята - скоро перезвоним.</p>
-        <p class="fm-err" id="fmfail" hidden><span data-i="fm.fail">Заявка не отправилась. Позвоните +7 700 111 24 80 или напишите нам:</span> <a href="https://wa.me/77001112480" data-wa="hero" target="_blank" rel="noopener">WhatsApp</a></p>
-        <p class="fm-err" id="fmerr" hidden data-i="fm.err">Проверьте номер телефона: нужно не меньше 10 цифр.</p>
+        <p class="fm-ok" id="fmok" data-r="ok" hidden data-i="fm.ok">Спасибо! Заявка принята - скоро перезвоним.</p>
+        <p class="fm-err" id="fmfail" data-r="fail" hidden><span data-i="fm.fail">Заявка не отправилась. Позвоните +7 700 111 24 80 или напишите нам:</span> <a href="https://wa.me/77001112480" data-wa="hero" target="_blank" rel="noopener">WhatsApp</a></p>
+        <p class="fm-err" id="fmerr" data-r="err" hidden data-i="fm.err">Проверьте номер телефона: нужно не меньше 10 цифр.</p>
       </form>
     </div>
   </div>
@@ -436,12 +436,33 @@
 </footer>
 
 <!-- липкая панель на мобильном -->
+<!-- ВСПЛЫВАЮЩЕЕ ОКНО: заявка через 20 секунд на сайте, раз за визит -->
+<div class="pop" id="pop" hidden>
+  <div class="pop-bg" data-pop-close></div>
+  <div class="pop-box" role="dialog" aria-modal="true" aria-labelledby="pop-t" tabindex="-1">
+    <button class="pop-x" type="button" data-pop-close aria-label="Закрыть" data-i-aria="a.close">&times;</button>
+    <p class="kicker" data-i="pp.k">Бесплатный замер</p>
+    <h2 id="pop-t" data-i="pp.t">Обсудим вашу мебель?</h2>
+    <p class="pop-l" data-i="pp.l">Оставьте номер - перезвоним, ответим на вопросы и назначим замер.</p>
+    <form class="form" id="pform" novalidate data-lb-direct data-sec="popup">
+      <label class="fld"><span data-i="fm.name">Имя</span><input type="text" name="name" autocomplete="name" placeholder="Как к вам обращаться" data-i-ph="fm.nameph"></label>
+      <label class="fld"><span data-i="fm.phone">Телефон</span><input type="tel" name="phone" autocomplete="tel" inputmode="tel" placeholder="+7 7__ ___ __ __" required></label>
+      <label class="fld"><span data-i="fm.msg">Сообщение</span><textarea name="message" rows="2" maxlength="1000" placeholder="Опишите задачу: размеры, материалы, сроки - по желанию" data-i-ph="fm.msgph"></textarea></label>
+      <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn btn-wa btn-big" type="submit"><span data-i="fm.btn">Отправить заявку</span></button>
+      <p class="fm-ok" data-r="ok" hidden data-i="fm.ok">Спасибо! Заявка принята - скоро перезвоним.</p>
+      <p class="fm-err" data-r="err" hidden data-i="fm.err">Проверьте номер телефона: нужно не меньше 10 цифр.</p>
+      <p class="fm-err" data-r="fail" hidden><span data-i="fm.fail">Заявка не отправилась. Позвоните +7 700 111 24 80 или напишите нам:</span> <a href="https://wa.me/77001112480" data-wa="hero" target="_blank" rel="noopener">WhatsApp</a></p>
+    </form>
+  </div>
+</div>
+
 <div class="bar" id="bar">
   <a class="b-tel" href="tel:+77001112480"><svg width="18" height="18"><use href="#ic-tel"/></svg><span data-i="bar.call">Позвонить</span></a>
   <a class="b-wa" href="https://wa.me/77001112480" data-wa="hero" target="_blank" rel="noopener"><svg width="18" height="18"><use href="#ic-wa"/></svg><span>WhatsApp</span></a>
   <a class="b-ig" href="https://www.instagram.com/lineo.mebel.kz" target="_blank" rel="noopener" aria-label="Instagram LINEO"><svg width="22" height="22"><use href="#ic-ig"/></svg></a>
 </div>
 
-<script src="script.js?v=20261001-3"></script>
+<script src="script.js?v=20261001-4"></script>
 </body>
 </html>

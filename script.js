@@ -362,40 +362,100 @@ if (HAS_IO) {
    Без перехода в WhatsApp: заявка уходит в бота, «принято» показываем только после ответа сервера.
    Не дошла - показываем телефон и WhatsApp как запасной канал. */
 var LB = "https://lead-bot.sultan-askarov-kz.workers.dev/e";
-function sendLead(fields){
-  if (window.LeadBot && window.LeadBot.submit) return window.LeadBot.submit(fields, {el: form, label: "Отправить заявку"});
+function sendLead(fields, f){
+  var sec = f.getAttribute("data-sec") || "zamer";
+  if (window.LeadBot && window.LeadBot.submit) return window.LeadBot.submit(fields, {el: f, label: "Отправить заявку", section: sec});
   /* трекер не загрузился (блокировщик) - шлём сами, без источника визита */
   if (!window.fetch) return Promise.resolve({ok: false});
-  var body = JSON.stringify({site: "lineo", type: "form", direct: 1, fields: fields, label: "Отправить заявку", section: "zamer",
+  var body = JSON.stringify({site: "lineo", type: "form", direct: 1, fields: fields, label: "Отправить заявку", section: sec,
     page: location.pathname + location.hash, lang: root.lang, ts: new Date().toISOString()});
   return fetch(LB, {method: "POST", body: body, headers: {"content-type": "text/plain"}})
     .then(function(r){ return {ok: r.ok}; }, function(){ return {ok: false}; });
 }
-var form = document.getElementById("form");
-if (form) form.addEventListener("submit", function(e){
-  e.preventDefault();
-  var ok = document.getElementById("fmok"), err = document.getElementById("fmerr"), fail = document.getElementById("fmfail");
-  var btn = form.querySelector('[type="submit"]');
-  if (btn.disabled) return;
-  if (form.company && form.company.value) return;          /* honeypot */
-  var phone = form.phone.value.trim();
-  if (phone.replace(/\D/g, "").length < 10) { err.hidden = false; ok.hidden = true; fail.hidden = true; form.phone.focus(); return; }
-  err.hidden = true; fail.hidden = true;
-  /* поля - на русском, как их увидит менеджер в Telegram, независимо от языка сайта */
-  var sel = form.what;
-  var fields = {name: form.name.value.trim(), phone: phone, "Что нужно": sel.value || "", message: form.message.value.trim()};
-  btn.disabled = true;
-  sendLead(fields).then(function(r){
-    btn.disabled = false;
-    if (r && r.ok) {
-      ok.hidden = false;
-      conv("lead");
-      form.reset();
-    } else {
-      fail.hidden = false;
-    }
+/* обе формы (замер и всплывающее окно) работают одинаково; статусы - [data-r=ok|err|fail] внутри формы */
+function bindForm(f, onOk){
+  if (!f) return;
+  var st = function(r){ return f.querySelector('[data-r="' + r + '"]'); };
+  f.addEventListener("submit", function(e){
+    e.preventDefault();
+    var ok = st("ok"), err = st("err"), fail = st("fail");
+    var btn = f.querySelector('[type="submit"]');
+    if (btn.disabled) return;
+    if (f.company && f.company.value) return;              /* honeypot */
+    var phone = f.phone.value.trim();
+    if (phone.replace(/\D/g, "").length < 10) { err.hidden = false; ok.hidden = true; fail.hidden = true; f.phone.focus(); return; }
+    err.hidden = true; fail.hidden = true;
+    /* поля - на русском, как их увидит менеджер в Telegram, независимо от языка сайта */
+    var fields = {name: f.name.value.trim(), phone: phone, "Что нужно": f.what ? f.what.value : "", message: f.message.value.trim()};
+    if (!fields["Что нужно"]) delete fields["Что нужно"];
+    btn.disabled = true;
+    sendLead(fields, f).then(function(r){
+      btn.disabled = false;
+      if (r && r.ok) {
+        ok.hidden = false;
+        conv("lead");
+        f.reset();
+        try { localStorage.setItem("ln-lead", String(Date.now())); } catch(x){}
+        if (onOk) onOk();
+      } else {
+        fail.hidden = false;
+      }
+    });
   });
-});
+}
+var form = document.getElementById("form");
+bindForm(form);
+
+/* ---------------- ВСПЛЫВАЮЩЕЕ ОКНО ЗАЯВКИ ----------------
+   Через 20 секунд на сайте (считаем только время с открытой вкладкой), один раз за визит.
+   Не показываем: заявка уже отправлена, окно закрыли меньше 3 дней назад, открыто меню,
+   человек уже у формы замера или заполняет её. */
+var pop = document.getElementById("pop");
+if (pop) (function(){
+  var POP_MS = 20000, SNOOZE = 3 * 864e5, left = POP_MS, t0 = 0, tm = 0, lastFocus = null;
+  function get(st, k){ try { return st.getItem(k); } catch(x){ return null; } }
+  function set(st, k, v){ try { st.setItem(k, v); } catch(x){} }
+  function blocked(){
+    if (get(sessionStorage, "ln-pop")) return true;
+    var lead = +get(localStorage, "ln-lead") || 0, shut = +get(localStorage, "ln-pop") || 0;
+    if (lead || Date.now() - shut < SNOOZE) return true;
+    return false;
+  }
+  function busy(){
+    if (document.body.classList.contains("menu-open")) return true;
+    if (form && form.contains(document.activeElement)) return true;
+    var z = document.getElementById("zamer");
+    if (z) { var r = z.getBoundingClientRect(); if (r.top < innerHeight && r.bottom > 0) return true; }
+    return false;
+  }
+  function open(){
+    if (blocked()) return;
+    if (busy()) { left = 8000; arm(); return; }           /* у формы - не мешаем, спросим позже */
+    set(sessionStorage, "ln-pop", "1");
+    lastFocus = document.activeElement;
+    pop.hidden = false;
+    document.body.classList.add("pop-open");
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ pop.classList.add("is-on"); }); });
+    pop.querySelector(".pop-box").focus({preventScroll: true});
+  }
+  function close(){
+    if (pop.hidden) return;
+    set(localStorage, "ln-pop", String(Date.now()));
+    pop.classList.remove("is-on");
+    document.body.classList.remove("pop-open");
+    setTimeout(function(){ pop.hidden = true; }, RED ? 0 : 350);
+    if (lastFocus && lastFocus.focus) lastFocus.focus({preventScroll: true});
+  }
+  function arm(){ clearTimeout(tm); t0 = Date.now(); tm = setTimeout(open, left); }
+  document.addEventListener("visibilitychange", function(){
+    if (document.hidden) { clearTimeout(tm); left = Math.max(0, left - (Date.now() - t0)); }
+    else if (pop.hidden && !blocked()) arm();
+  });
+  pop.addEventListener("click", function(e){ if (e.target.closest("[data-pop-close]")) close(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") close(); });
+  bindForm(document.getElementById("pform"), function(){ setTimeout(close, 2500); });
+  if (!blocked() && !document.hidden) arm();
+})();
 
 /* ---------------- СТАРТ ---------------- */
 snapshot();

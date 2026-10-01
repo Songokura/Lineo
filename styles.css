@@ -388,6 +388,20 @@ html.js .rv.in{opacity:1;transform:none}
 @media(max-width:760px){.foot-in{grid-template-columns:1fr;gap:12px}}
 
 /* липкая панель: Позвонить | WhatsApp | Instagram */
+/* всплывающее окно заявки */
+.pop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px}
+.pop[hidden]{display:none}
+.pop-bg{position:absolute;inset:0;background:rgba(7,9,11,.72);opacity:0;transition:opacity .3s}
+.pop-box{position:relative;width:min(440px,100%);max-height:calc(100svh - 40px);overflow:auto;padding:30px 26px 24px;border-radius:18px;background:var(--paper2);border:1px solid rgba(255,255,255,.08);box-shadow:0 30px 80px -20px rgba(0,0,0,.8);color:var(--txt);opacity:0;transform:translateY(24px);transition:opacity .35s,transform .35s;outline:0}
+.pop.is-on .pop-bg{opacity:1}
+.pop.is-on .pop-box{opacity:1;transform:none}
+.pop-box h2{font-size:clamp(26px,6vw,32px);line-height:1.05;margin:10px 0 8px}
+.pop-l{color:var(--mute);font-size:15px;margin:0 0 18px;text-align:center}
+.pop-x{position:absolute;top:10px;right:10px;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font-size:24px;line-height:1;cursor:pointer}
+.pop-x:hover{background:rgba(255,255,255,.16)}
+.pop .form{display:grid;gap:12px;padding:0;background:none;border:0;box-shadow:none}
+body.pop-open{overflow:hidden}
+@media(max-width:560px){.pop{place-items:end center;padding:0}.pop-box{width:100%;border-radius:18px 18px 0 0;padding:26px 18px calc(18px + env(safe-area-inset-bottom));max-height:92svh}}
 .bar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:55;display:none;grid-template-columns:1fr 1fr 50px;gap:6px;padding:6px;border-radius:999px;background:rgba(18,20,23,.94);box-shadow:0 12px 30px -10px rgba(0,0,0,.7);transform:translateY(120%);opacity:0;transition:transform .35s,opacity .35s}
 .bar.show{transform:none;opacity:1}
 .bar a{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:999px;font:600 14px/1 var(--ft);color:#fff}
