@@ -125,6 +125,7 @@ function applyLang(lang){
   plates.forEach(function(p){ renderSvc(p, p.cur, false); });
   setWaLinks();
   fillTicker();
+  paintRating();
   requestAnimationFrame(fitText);
 }
 /* ?lang= в URL сильнее localStorage: русское объявление не должно открыть казахскую версию.
@@ -456,6 +457,34 @@ if (pop) (function(){
   bindForm(document.getElementById("pform"), function(){ setTimeout(close, 2500); });
   if (!blocked() && !document.hidden) arm();
 })();
+
+/* ---------------- РЕЙТИНГ 2GIS ----------------
+   в HTML запасные цифры; свежие отдаёт LeadBot (/rating, обновляется раз в 6 часов) */
+var GIS = null;
+function plural(n, f){ var a = n % 10, b = n % 100; return f[(a === 1 && b !== 11) ? 0 : (a >= 2 && a <= 4 && (b < 12 || b > 14)) ? 1 : 2]; }
+function paintRating(){
+  if (!GIS) return;
+  document.querySelectorAll(".gis-r").forEach(function(el){ el.textContent = GIS.rating.toFixed(1); });
+  document.querySelectorAll(".gis-n").forEach(function(el){ el.textContent = GIS.count; });
+  document.querySelectorAll(".gis-w").forEach(function(el){ el.textContent = plural(GIS.count, ["отзыв","отзыва","отзывов"]); });
+  document.querySelectorAll(".fact .stars svg").forEach(function(el, i){ el.style.opacity = i < Math.round(GIS.rating) ? "" : ".25"; });
+}
+if (window.fetch) fetch("https://lead-bot.sultan-askarov-kz.workers.dev/rating?site=lineo")
+  .then(function(r){ return r.ok ? r.json() : null; })
+  .then(function(d){ if (d && d.count > 0 && d.rating > 0) { GIS = { rating: +d.rating, count: +d.count }; paintRating(); } })
+  .catch(function(){});
+
+/* ---------------- КАРТА ----------------
+   до клика - лёгкая картинка, живая карта 2GIS грузится только по клику */
+document.querySelectorAll(".kmap").forEach(function(box){
+  function live(){
+    if (box.classList.contains("is-live")) return;
+    var f = document.createElement("iframe");
+    f.src = box.dataset.map; f.title = "LINEO на карте 2GIS"; f.setAttribute("allow", "geolocation");
+    box.innerHTML = ""; box.appendChild(f); box.classList.add("is-live");
+  }
+  box.addEventListener("click", live);
+});
 
 /* ---------------- СТАРТ ---------------- */
 snapshot();

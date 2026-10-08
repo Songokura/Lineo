@@ -374,6 +374,19 @@ html.js .rv.in{opacity:1;transform:none}
 .kont-info dd{margin:8px 0 0;font-size:15.5px;font-weight:500;line-height:1.4}
 .kont-info dd a{color:var(--green);font-weight:600}
 .kont-info .wide{grid-column:1/-1}
+.kont-side{display:grid;gap:16px}
+.kmap{position:relative;aspect-ratio:5/3;border-radius:14px;overflow:hidden;background:var(--card);cursor:pointer;isolation:isolate}
+.kmap img,.kmap iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border:0;display:block}
+.kmap-pin{position:absolute;left:50%;top:50%;z-index:1;transform:translate(-50%,-100%);display:grid;justify-items:center;pointer-events:none}
+.kmap-pin b{padding:6px 11px;border-radius:8px;background:var(--green);color:#fff;font:700 12px/1 var(--ft);letter-spacing:.08em;box-shadow:0 6px 18px -4px rgba(0,0,0,.6)}
+.kmap-pin::after{content:"";width:12px;height:12px;margin-top:-6px;background:var(--green);transform:rotate(45deg)}
+.kmap-pin::before{content:"";position:absolute;bottom:-9px;width:14px;height:14px;border-radius:50%;background:rgba(44,178,115,.35);animation:kpulse 2.2s ease-out infinite}
+@keyframes kpulse{from{transform:scale(.6);opacity:1}to{transform:scale(2.6);opacity:0}}
+.kmap-btn{position:absolute;right:12px;bottom:12px;z-index:1;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(14,16,18,.82);color:var(--txt);font:600 14px var(--ft);cursor:pointer;transition:background .25s,border-color .25s}
+.kmap:hover .kmap-btn,.kmap-btn:focus-visible{background:var(--green);border-color:var(--green)}
+.kmap-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.kmap.is-live{cursor:auto}
+@media(prefers-reduced-motion:reduce){.kmap-pin::before{animation:none}}
 @media(max-width:860px){.kont{grid-template-columns:1fr}}
 @media(max-width:640px){.kont-info{grid-template-columns:1fr;gap:10px}.kont-btns .btn{flex:1 1 100%}}
 
